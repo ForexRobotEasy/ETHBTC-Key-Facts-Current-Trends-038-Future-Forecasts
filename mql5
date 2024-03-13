@@ -1,0 +1,76 @@
+mql5
+// Program Name: ETHBTC: Key Facts, Current Trends & Future Forecasts
+// Developer's Site: forexroboteasy.com
+// Development: Forex Robot Easy Team
+
+// Import required libraries
+#include <stdlib.mqh>
+#include <trade\trade.mqh>
+#include <series\series.mqh>
+#include <indicators\indicators.mqh>
+
+// Define constants
+const string ETH_SYMBOL = 'ETHUSD'; // Symbol for Ethereum
+const string BTC_SYMBOL = 'BTCUSD'; // Symbol for Bitcoin
+const int TIMEFRAME = PERIOD_H1; // Timeframe for analysis
+
+// Define global variables
+double ethPrice; // Current price of Ethereum
+double btcPrice; // Current price of Bitcoin
+
+// Define functions
+void FetchPriceData()
+{
+   // Fetch price data for Ethereum
+   MqlRates ethRates[];
+   int ethRatesTotal = CopyRates(ETH_SYMBOL, TIMEFRAME, 0, 1, ethRates);
+   
+   if(ethRatesTotal > 0)
+      ethPrice = ethRates[0].close;
+
+   // Fetch price data for Bitcoin
+   MqlRates btcRates[];
+   int btcRatesTotal = CopyRates(BTC_SYMBOL, TIMEFRAME, 0, 1, btcRates);
+
+   if(btcRatesTotal > 0)
+      btcPrice = btcRates[0].close;
+}
+
+void PerformTechnicalAnalysis()
+{
+   // Calculate Moving Averages
+   double maShort = iMA(ETH_SYMBOL, TIMEFRAME, 10, 0, MODE_SMMA, PRICE_CLOSE, 0);
+   double maLong = iMA(ETH_SYMBOL, TIMEFRAME, 50, 0, MODE_SMMA, PRICE_CLOSE, 0);
+
+   // Calculate Relative Strength Index (RSI)
+   double rsi = iRSI(ETH_SYMBOL, TIMEFRAME, 14, PRICE_CLOSE, 0);
+
+   // Calculate Bollinger Bands
+   double bbUpper, bbLower;
+   bool res = iBands(ETH_SYMBOL, TIMEFRAME, 20, 2.0, 2.0, 0, MODE_UPPER, bbUpper, 0);
+   res = iBands(ETH_SYMBOL, TIMEFRAME, 20, 2.0, 2.0, 0, MODE_LOWER, bbLower, 0);
+
+   // Perform analysis and identify potential trading opportunities
+   if(ethPrice > maShort && ethPrice > maLong && rsi > 70 && ethPrice > bbUpper)
+   {
+      // Place buy order
+      double lotSize = 0.01; // Change lot size as per your risk management strategy
+      OrderSend(ETH_SYMBOL, OP_BUY, lotSize, ethPrice, 0, 0, 0, 'Buy ETHBTC', 0, 0, clrGreen);
+   }
+   else if(ethPrice < maShort && ethPrice < maLong && rsi < 30 && ethPrice < bbLower)
+   {
+      // Place sell order
+      double lotSize = 0.01; // Change lot size as per your risk management strategy
+      OrderSend(ETH_SYMBOL, OP_SELL, lotSize, ethPrice, 0, 0, 0, 'Sell ETHBTC', 0, 0, clrRed);
+   }
+}
+
+// Entry point of the program
+void OnStart()
+{
+   // Fetch price data
+   FetchPriceData();
+
+   // Perform technical analysis
+   PerformTechnicalAnalysis();
+}
